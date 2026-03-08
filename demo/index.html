@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AE & VAE — Interactive Neural Network Demo</title>
+    <meta name="description" content="Draw digits and watch Autoencoders and Variational Autoencoders reconstruct them in real-time. Runs entirely in your browser.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- ═══════════════ HERO SECTION ═══════════════ -->
+    <header class="hero" id="hero">
+        <div class="hero-bg-grid"></div>
+        <div class="hero-content">
+            <div class="hero-badge">🧠 Machine Learning Demo</div>
+            <h1 class="hero-title">
+                <span class="gradient-text">Autoencoder</span> &
+                <span class="gradient-text-alt">VAE</span>
+            </h1>
+            <p class="hero-subtitle">
+                Draw a digit. Watch neural networks compress it to <strong>just 2–16 numbers</strong>, then reconstruct it.
+                <br>Everything runs <em>in your browser</em> — no server, no cost, pure math.
+            </p>
+            <a href="#demo" class="hero-cta">Try It Now ↓</a>
+        </div>
+    </header>
+
+    <!-- ═══════════════ WHAT IS THIS SECTION ═══════════════ -->
+    <section class="info-section" id="info">
+        <div class="container">
+            <h2 class="section-title">How Does It Work?</h2>
+            <div class="info-cards">
+                <div class="info-card">
+                    <div class="info-icon">✏️</div>
+                    <h3>1. You Draw</h3>
+                    <p>Draw a digit (0–9) on the canvas or upload your own image.</p>
+                </div>
+                <div class="info-card">
+                    <div class="info-icon">🗜️</div>
+                    <h3>2. Encoder Compresses</h3>
+                    <p>The neural network squeezes your 784-pixel image into just 2–16 numbers.</p>
+                </div>
+                <div class="info-card">
+                    <div class="info-icon">🔮</div>
+                    <h3>3. Decoder Rebuilds</h3>
+                    <p>From those few numbers, it reconstructs the full image. Compare AE vs VAE!</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════ MAIN DEMO SECTION ═══════════════ -->
+    <section class="demo-section" id="demo">
+        <div class="container">
+            <h2 class="section-title">Interactive Demo</h2>
+            <p class="section-desc">Draw a digit below and see both models reconstruct it in real-time</p>
+            <div class="disclaimer-banner">
+                <span class="disclaimer-icon">ℹ️</span>
+                <p>These models were trained <strong>only on MNIST handwritten digits (0–9)</strong>. Uploaded photos, faces, or non-digit images will be interpreted as the closest digit the model recognizes. For best results, draw a digit!</p>
+            </div>
+
+            <!-- Loading overlay -->
+            <div class="loading-overlay" id="loadingOverlay">
+                <div class="loading-spinner"></div>
+                <p class="loading-text">Loading neural networks into your browser...</p>
+                <p class="loading-subtext">First load may take a few seconds</p>
+            </div>
+
+            <div class="demo-grid">
+                <!-- Drawing Canvas -->
+                <div class="demo-panel canvas-panel">
+                    <h3 class="panel-title">
+                        <span class="panel-icon">✏️</span> Your Input
+                    </h3>
+                    <div class="canvas-wrapper">
+                        <canvas id="drawCanvas" width="280" height="280"></canvas>
+                        <div class="canvas-guide">Draw a digit here</div>
+                    </div>
+                    <div class="canvas-controls">
+                        <button class="btn btn-primary" id="runBtn" disabled>
+                            <span class="btn-icon">⚡</span> Run Models
+                        </button>
+                        <button class="btn btn-secondary" id="clearBtn">
+                            <span class="btn-icon">🗑️</span> Clear
+                        </button>
+                        <label class="btn btn-secondary btn-upload" for="uploadInput">
+                            <span class="btn-icon">📁</span> Upload
+                        </label>
+                        <input type="file" id="uploadInput" accept="image/*" hidden>
+                    </div>
+                    <div class="brush-controls">
+                        <label class="brush-label">Brush Size</label>
+                        <input type="range" id="brushSize" min="8" max="30" value="18" class="brush-slider">
+                    </div>
+                </div>
+
+                <!-- AE Output -->
+                <div class="demo-panel output-panel ae-panel">
+                    <h3 class="panel-title">
+                        <span class="panel-icon">🔵</span> Standard AE
+                        <span class="panel-badge">16-dim latent</span>
+                    </h3>
+                    <div class="output-canvas-wrapper">
+                        <canvas id="aeOutput" width="280" height="280"></canvas>
+                        <div class="output-placeholder">Output will appear here</div>
+                    </div>
+                    <div class="output-stats" id="aeStats">
+                        <div class="stat">
+                            <span class="stat-label">Compression</span>
+                            <span class="stat-value">784 → 16</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-label">Ratio</span>
+                            <span class="stat-value">49:1</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- VAE Output -->
+                <div class="demo-panel output-panel vae-panel">
+                    <h3 class="panel-title">
+                        <span class="panel-icon">🟣</span> Variational AE
+                        <span class="panel-badge">2-dim latent</span>
+                    </h3>
+                    <div class="output-canvas-wrapper">
+                        <canvas id="vaeOutput" width="280" height="280"></canvas>
+                        <div class="output-placeholder">Output will appear here</div>
+                    </div>
+                    <div class="output-stats" id="vaeStats">
+                        <div class="stat">
+                            <span class="stat-label">Compression</span>
+                            <span class="stat-value">784 → 2</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-label">Ratio</span>
+                            <span class="stat-value">392:1</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════ LATENT SPACE EXPLORER ═══════════════ -->
+    <section class="explorer-section" id="explorer">
+        <div class="container">
+            <h2 class="section-title">VAE Latent Space Explorer</h2>
+            <p class="section-desc">
+                Click anywhere on the 2D latent space below to generate a digit from that position.
+                <br>Watch how digits smoothly morph as you move around!
+            </p>
+            <div class="explorer-grid">
+                <div class="explorer-canvas-wrapper">
+                    <canvas id="latentCanvas" width="400" height="400"></canvas>
+                    <div class="explorer-crosshair" id="crosshair"></div>
+                    <div class="explorer-axis axis-x">Latent Dim 1 →</div>
+                    <div class="explorer-axis axis-y">← Latent Dim 2</div>
+                </div>
+                <div class="explorer-output-wrapper">
+                    <h3 class="explorer-output-title">Generated Digit</h3>
+                    <canvas id="explorerOutput" width="280" height="280"></canvas>
+                    <div class="explorer-coords" id="latentCoords">
+                        z = [0.00, 0.00]
+                    </div>
+                    <p class="explorer-hint">💡 Each point in this 2D space maps to a different digit. The VAE learned this organization on its own!</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════ ARCHITECTURE SECTION ═══════════════ -->
+    <section class="arch-section" id="architecture">
+        <div class="container">
+            <h2 class="section-title">Under the Hood</h2>
+            <div class="arch-comparison">
+                <div class="arch-card ae-arch">
+                    <h3 class="arch-title">Standard Autoencoder</h3>
+                    <div class="arch-diagram">
+                        <div class="arch-layer">Input<br><small>28×28 = 784</small></div>
+                        <div class="arch-arrow">→</div>
+                        <div class="arch-layer">Conv 32</div>
+                        <div class="arch-arrow">→</div>
+                        <div class="arch-layer">Conv 64</div>
+                        <div class="arch-arrow">→</div>
+                        <div class="arch-layer arch-bottleneck">z = 16</div>
+                        <div class="arch-arrow">→</div>
+                        <div class="arch-layer">Deconv 32</div>
+                        <div class="arch-arrow">→</div>
+                        <div class="arch-layer">Output<br><small>28×28</small></div>
+                    </div>
+                    <div class="arch-info">
+                        <p><strong>141,329</strong> parameters · MSE Loss · Deterministic latent space</p>
+                    </div>
+                </div>
+                <div class="arch-card vae-arch">
+                    <h3 class="arch-title">Variational Autoencoder</h3>
+                    <div class="arch-diagram">
+                        <div class="arch-layer">Input<br><small>28×28 = 784</small></div>
+                        <div class="arch-arrow">→</div>
+                        <div class="arch-layer">Conv ×3</div>
+                        <div class="arch-arrow">→</div>
+                        <div class="arch-layer arch-bottleneck-vae">μ, σ²<br><small>→ z = 2</small></div>
+                        <div class="arch-arrow">→</div>
+                        <div class="arch-layer">Deconv ×3</div>
+                        <div class="arch-arrow">→</div>
+                        <div class="arch-layer">Output<br><small>28×28</small></div>
+                    </div>
+                    <div class="arch-info">
+                        <p><strong>200,197</strong> parameters · BCE + KL Loss · Probabilistic latent space</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════ FOOTER ═══════════════ -->
+    <footer class="footer">
+        <div class="container">
+            <p>Built with PyTorch · Runs on ONNX Runtime Web · 100% Client-Side</p>
+            <p class="footer-sub">No data leaves your browser. All computation happens locally.</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.21.0/dist/ort.min.js"></script>
+    <script>
+        // Disable multi-threading to avoid crossOriginIsolated requirement
+        ort.env.wasm.numThreads = 1;
+    </script>
+    <script src="app.js"></script>
+</body>
+</html>
