@@ -27,6 +27,8 @@ The real power is running training locally on your machine. You'll get:
 
 ### 🌐 Online Demo (GitHub Pages)
 
+https://sonesh-2202.github.io/AE-VAE_demo/demo/index.html 
+
 The `demo/` folder contains a **zero-cost, client-side web demo** that runs entirely in the browser using ONNX Runtime Web. It's a lightweight preview — **download and train locally for the full experience.**
 
 ---
